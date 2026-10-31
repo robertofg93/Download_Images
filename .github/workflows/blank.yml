@@ -6,42 +6,33 @@ on:
       image:
         description: 'Nombre de la imagen (ej: nginx:latest)'
         required: true
-        default: 'nginx:latest'
+        default: 'python:3.13-slim'
 
 jobs:
   download-image:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. (Opcional) Iniciar sesión en Docker Hub para imágenes privadas
-      #    Elimina este paso si la imagen es pública.
-      - name: Login to Docker Hub
-        if: ${{ secrets.DOCKERHUB_USERNAME != '' }}
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-      # 2. Descargar la imagen desde Docker Hub
+      # 1. Descargar la imagen desde Docker Hub (pública)
       - name: Pull Docker image
         run: docker pull ${{ github.event.inputs.image }}
 
-      # 3. Guardar la imagen como archivo .tar
+      # 2. Guardar la imagen como archivo .tar
       - name: Save image to TAR
         run: |
-          # Se reemplazan los caracteres ':' y '/' para un nombre de archivo seguro
+          # Se reemplazan ':' y '/' para un nombre de archivo seguro
           IMAGE_NAME=$(echo "${{ github.event.inputs.image }}" | tr '/:' '__')
           docker save -o "${IMAGE_NAME}.tar" ${{ github.event.inputs.image }}
           ls -lh "${IMAGE_NAME}.tar"
 
-      # 4. (Opcional) Comprimir el .tar para reducir su tamaño (útil para imágenes grandes)
+      # 3. (Opcional) Comprimir el .tar para reducir su tamaño
       - name: Compress TAR with gzip
         run: |
           IMAGE_NAME=$(echo "${{ github.event.inputs.image }}" | tr '/:' '__')
           gzip "${IMAGE_NAME}.tar"
           ls -lh "${IMAGE_NAME}.tar.gz"
 
-      # 5. Subir el archivo como artefacto descargable
+      # 4. Subir el archivo como artefacto descargable
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
@@ -49,5 +40,5 @@ jobs:
           path: |
             *.tar
             *.tar.gz
-          retention-days: 7   # Días que estará disponible el artefacto
+          retention-days: 7
           if-no-files-found: error

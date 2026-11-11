@@ -6,7 +6,7 @@ on:
       image:
         description: 'Nombre de la imagen (ej: nginx:latest)'
         required: true
-        default: 'python:3.13-slim'
+        default: 'container-registry.oracle.com/goldengate/goldengate-free:23'
 
 jobs:
   download-image:
